@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iced Chat</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    canvas {
+      display: block;
+      vertical-align: bottom;
+    }
+
+    #particles-js {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background-color: #0000;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background-color: #121212;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 30px;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #366ce0;
+    }
+
+    #usuarios_online {
+      background-color: #aa141400;
+      color: #192ddf;
+      padding: 6px 20px;
+      border-radius: 15px;
+      font-weight: 700;
+      font-size: 1.3rem;
+      min-width: 50px;
+      text-align: center;
+      box-shadow: 0 0px 30px rgba(156, 159, 180, 0.7);
+      user-select: none;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    #lista_mensagens {
+      flex-grow: 1;
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      overflow-y: auto;
+      font-size: 1rem;
+      line-height: 1.3;
+      max-height: 100%;
+    }
+
+    #lista_mensagens li {
+      background: #2c2c2c;
+      padding: 8px 14px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+
+    #lista_mensagens li:hover {
+      background-color: #3a3a3a;
+    }
+
+    .hora_mensagem {
+      float: right;
+      font-size: 0.75rem;
+      color: #999;
+      margin-left: 10px;
+    }
+
+    .inputs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #2c2c2c;
+      color: #eee;
+      font-size: 1rem;
+      outline: none;
+      transition: box-shadow 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      box-shadow: 0 0 8px 2px #82aaff;
+      background: #3a3a3a;
+    }
+
+    #btn_enviar {
+      padding: 12px 20px;
+      background: #366ce0;
+      color: #eee;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    #btn_enviar:hover {
+      background: #5f85d9;
+    }
+
+    .botoes-controle {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .botoes-controle button {
+      flex: 1;
+      padding: 10px 8px;
+      background: #333;
+      color: #eee;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .botoes-controle button:hover {
+      background: #555;
+    }
+
+    #lista_mensagens::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #lista_mensagens::-webkit-scrollbar-track {
+      background: #1f1f1f;
+    }
+
+    #lista_mensagens::-webkit-scrollbar-thumb {
+      background: #82aaff;
+      border-radius: 10px;
+    }
+
+    #contador_caracteres {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: rgb(81, 132, 240);
+    }
+
+   @media (max-width: 720px) {
+    html, body {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+  }
+
+  .chat-container {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    margin: 0;
+    max-height: none;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #lista_mensagens {
+    max-height: 65vh;       
+    overflow-y: auto;
+    font-size: 0.95rem;
+  }
+
+  .inputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .botoes-controle {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  input[type="text"],
+    #btn_enviar {
+    width: 100%;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+  <div id="particles-js"></div>
+
+  <div class="chat-container">
+    <header>
+      <span>❄️Iced Chat❄️</span>
+      <span id="usuarios_online">0</span>
+    </header>
+
+    <ul id="lista_mensagens"></ul>
+
+    <div class="inputs">
+      <input type="text" id="input_user" placeholder="Seu nome..." autocomplete="off" />
+      <input type="text" id="input_mensagem" placeholder="Digite sua mensagem..." autocomplete="off" />
+      <small id="contador_caracteres">0 / 100</small>
+      
+    </div>
+
+    <div class="botoes-controle">
+      
+      <button onclick="remover_ultima()">⬅️</button>
+      <button onclick="apagar_tudo()">🗑️</button>
+      <button onclick="atualizar_tela()">🔄</button>
+      <button id="btn_enviar" onclick="enviar_mensagem()">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Bibliotecas -->
+  <script src="http://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script src="http://threejs.org/examples/js/libs/stats.min.js"></script>
+
+  <script>
+      const mensagens = [];
+
+  function atualizar_tela() {
+    const lista = document.getElementById('lista_mensagens');
+    lista.innerHTML = '';
+    mensagens.forEach((msg) => {
+      const [texto, hora] = msg.split('|||');
+      const li = document.createElement('li');
+      li.innerHTML = `${texto}<span class="hora_mensagem">${hora}</span>`;
+      lista.appendChild(li);
+    });
+  }
+
+  function enviar_mensagem() {
+    const inputMsg = document.getElementById('input_mensagem');
+    const inputUser = document.getElementById('input_user');
+    const texto = inputMsg.value.trim();
+    const user = inputUser.value.trim();
+
+    if (texto === '' || user === '') {
+      alert('Por favor, preencha seu nome e mensagem.');
+      return;
+    }
+
+    if (texto.length > 100) {
+      alert("A mensagem não pode ultrapassar 100 caracteres.");
+      return;
+    }
+
+    const agora = new Date();
+    const hora = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const usuario_texto = `${user} : ${texto}|||${hora}`;
+
+    mensagens.unshift(usuario_texto); 
+    inputMsg.value = '';
+    document.getElementById('contador_caracteres').textContent = '0 / 100';
+    atualizar_tela();
+
+    fetch("http://vianetminas.com.br/mensagens/enviar_mensagem.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "mensagem=" + encodeURIComponent(usuario_texto)
+    }).then(() => recarregar());
+  }
+
+    function remover_ultima() {
+      if (mensagens.length > 0) {
+        mensagens.pop();
+        atualizar_tela();
+      }
+    }
+
+    function apagar_tudo() {
+      mensagens.length = 0;
+      atualizar_tela();
+      fetch("http://vianetminas.com.br/mensagens/limpar_mensagens.php");
+    }
+
+    function recarregar() {
+      fetch("http://vianetminas.com.br/mensagens/listar_mensagens.php")
+        .then(res => res.json())
+        .then(data => {
+          mensagens.length = 0;
+          mensagens.push(...data.map(obj => obj.conteudo));
+          atualizar_tela();
+        })
+        .catch(error => {
+          console.error('Erro ao carregar mensagens:', error);
+        });
+    }
+
+    function usuarios_online() {
+      fetch("http://vianetminas.com.br/mensagens/usuarios_online.php")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('usuarios_online').textContent = data.online;
+        })
+        .catch(err => console.error('Erro ao obter usuários online:', err));
+    }
+
+    window.onload = function () {
+      recarregar();
+      usuarios_online();
+
+      setInterval(() => {
+        recarregar();
+        usuarios_online();
+      }, 3000);
+    };
+
+    document.getElementById('input_mensagem').addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        enviar_mensagem();
+      }
+    });
+
+    document.getElementById('input_mensagem').addEventListener('input', function () {
+      const texto = this.value;
+      const contador = document.getElementById('contador_caracteres');
+      contador.textContent = `${texto.length} / 100`;
+      contador.style.color = texto.length > 100 ? 'red' : 'blue';
+    });
+
+    // Particles.js 
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 400, density: { enable: true, value_area: 800 } },
+        color: { value: "#fff" },
+        shape: {
+          type: "circle",
+          stroke: { width: 0, color: "#000000" },
+          polygon: { nb_sides: 5 }
+        },
+        opacity: { value: 0.5, random: true },
+        size: { value: 10, random: true },
+        line_linked: { enable: false },
+        move: {
+          enable: true,
+          speed: 6,
+          direction: "bottom",
+          out_mode: "out"
+        }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: {
+          onhover: { enable: true, mode: "bubble" },
+          onclick: { enable: true, mode: "repulse" },
+          resize: true
+        },
+        modes: {
+          bubble: { distance: 400, size: 4, duration: 0.3, opacity: 1, speed: 3 },
+          repulse: { distance: 200, duration: 0.4 }
+        }
+      },
+      retina_detect: true
+    });
+
+    var stats = new Stats();
+    stats.setMode(0);
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.left = '0px';
+    stats.domElement.style.top = '0px';
+    document.body.appendChild(stats.domElement);
+
+    function update() {
+      stats.begin();
+      stats.end();
+      requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  </script>
+</body>
+</html>
